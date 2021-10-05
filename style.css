@@ -8,13 +8,15 @@
 
 body {
     font-family: montserrat;
+    min-width: 430px;
 }
 
 header {
+    position: fixed;
     background: rgb(55, 117, 153);
     height: 80px;
     width: 100%;
-    min-width: 430px;   
+    
 }
 
 label.logo {
@@ -63,6 +65,49 @@ a.active, a:hover {
     display: none;
 }
 
+section {
+    height: 100vh;
+    width: 100%;
+}
+
+section#about {
+    display: flex;
+    flex-wrap: wrap;
+    background: rgb(2,0,36);
+    background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%);
+    padding-top: 100px;
+    margin-left: auto;
+    margin-right: auto;
+
+}
+img {
+    max-width: 400px; 
+    height: 70%;
+    margin: 10px 20px 20px 40px;
+
+}
+
+.credential {
+    margin: 20px;
+    
+}
+
+
+section#skills {
+    background: rgb(163, 162, 189);
+    background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(14,60,26,0.8099614845938375) 37%, rgba(0,212,255,1) 100%);
+
+
+}
+section#experience {
+    background-color: rgba(175, 15, 167, 0.486);
+}
+section#education {
+    background-color: rgba(23, 4, 48, 0.486);
+}
+
+
+
 @media (max-width: 952px){
     label.logo {
         font-size: 30px;
@@ -105,5 +150,15 @@ a.active, a:hover {
     }
     #check:checked ~ ul {
         left: 0;
+    }
+
+    section#about {
+        height: auto;
+    }
+    img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        
     }
 }
