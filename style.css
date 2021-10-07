@@ -81,8 +81,10 @@ section#about {
 
 }
 img {
-    width: 500px;
-    height: 500px;
+    width: 60%;
+    height: 60vh;
+    min-height: 450px;
+    max-height: 650px;
     object-fit: contain;
     margin: 10px 20px 20px 40px;
 
@@ -112,7 +114,7 @@ section#education {
 
 
 
-@media (max-width: 952px){
+@media (max-width: 1122px){
     label.logo {
         font-size: 30px;
         padding-left: 50px;
@@ -121,6 +123,14 @@ section#education {
     header ul li a {
         font-size: 16px;
 
+    }
+    img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    section#about {
+        height: auto;
     }
 }
 
@@ -156,13 +166,6 @@ section#education {
         left: 0;
     }
 
-    section#about {
-        height: auto;
-    }
-    img {
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        
-    }
+    
+    
 }
