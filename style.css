@@ -81,15 +81,19 @@ section#about {
 
 }
 img {
-    max-width: 400px; 
-    height: 70%;
+    width: 500px;
+    height: 500px;
+    object-fit: contain;
     margin: 10px 20px 20px 40px;
 
 }
 
 .credential {
-    margin: 20px;
-    
+    width: auto;
+  height: auto;
+  margin: 0 auto;
+  padding: 10px;
+  position: relative;
 }
 
 
