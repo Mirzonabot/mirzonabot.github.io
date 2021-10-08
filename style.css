@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
+
 * {
     margin: 0;
     padding: 0;
@@ -5,20 +7,16 @@
     text-decoration: none;
     box-sizing: border-box;
 }
-
 body {
     font-family: montserrat;
     min-width: 430px;
 }
-
 header {
     position: fixed;
     background: rgb(55, 117, 153);
     height: 80px;
-    width: 100%;
-    
+    width: 100%;   
 }
-
 label.logo {
     color: white;
     font-size: 35px;
@@ -26,18 +24,15 @@ label.logo {
     padding: 0 100px;
     font-weight: bold;
 }
-
 header ul {
     float: right;
     margin-right: 40px;
 }
-
 header ul li {
     display: inline-block;
     line-height: 80px;
     margin: 0 5px;
 }
-
 header ul li a{
     color: white;
     font-size: 17px;
@@ -46,12 +41,10 @@ header ul li a{
     text-transform: uppercase;
     border-radius: 3px;
 }
-
 a.active, a:hover {
     background: rgb(83, 143, 161);
     transition: .5s;
 }
-
 .checkbtn {
     font-size: 30px;
     color: white;
@@ -64,21 +57,18 @@ a.active, a:hover {
 #check {
     display: none;
 }
-
 section {
     height: 100vh;
     width: 100%;
+    min-width: 562px;
 }
-
 section#about {
     display: flex;
     flex-wrap: wrap;
     background: rgb(2,0,36);
     background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%);
     padding-top: 100px;
-    margin-left: auto;
-    margin-right: auto;
-
+    min-height: 600px;
 }
 img {
     width: 60%;
@@ -86,24 +76,26 @@ img {
     min-height: 450px;
     max-height: 650px;
     object-fit: contain;
-    margin: 10px 20px 20px 40px;
-
+    margin: 10px 40px 20px 40px;
 }
-
+.img {
+    height: 100%;
+    width: 50%;
+}
 .credential {
-    width: auto;
-  height: auto;
-  margin: 0 auto;
-  padding: 10px;
-  position: relative;
+    line-height: 40px;
+    width: 50%;
 }
-
-
+.credential p {
+    font-family: "Comic Neue", "Comic Sans", cursive;
+    font-size: 25px;
+}
+.img, .credential {
+    min-width: 561px;
+}
 section#skills {
     background: rgb(163, 162, 189);
     background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(14,60,26,0.8099614845938375) 37%, rgba(0,212,255,1) 100%);
-
-
 }
 section#experience {
     background-color: rgba(175, 15, 167, 0.486);
@@ -111,18 +103,20 @@ section#experience {
 section#education {
     background-color: rgba(23, 4, 48, 0.486);
 }
-
-
-
+footer {
+    position: fixed;
+    bottom: 0px;
+    background: rgb(55, 117, 153);
+    height: 80px;
+    min-width: 562px;
+}
 @media (max-width: 1122px){
     label.logo {
         font-size: 30px;
         padding-left: 50px;
     }
-
     header ul li a {
         font-size: 16px;
-
     }
     img {
         display: block;
@@ -132,13 +126,18 @@ section#education {
     section#about {
         height: auto;
     }
+    .img, .credential {
+        width: 100%;
+        padding-bottom: 30px;
+    }
+    .credential{
+        text-align: center;
+    }
 }
-
 @media (max-width: 858px){
     .checkbtn {
         display: block;
     }
-
     ul {
         position: fixed;
         width: 100%;
@@ -149,7 +148,6 @@ section#education {
         text-align: center;
         transition: all .5s;
     }
-
     header ul li {
         display: block;
         margin: 50px 0;
@@ -165,7 +163,6 @@ section#education {
     #check:checked ~ ul {
         left: 0;
     }
-
-    
-    
 }
+
+
