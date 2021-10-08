@@ -104,12 +104,23 @@ section#education {
     background-color: rgba(23, 4, 48, 0.486);
 }
 footer {
+    display: flex;
     position: fixed;
     bottom: 0px;
     background: rgb(55, 117, 153);
     height: 80px;
-    min-width: 562px;
+    width: 100%;
+    text-align: center;
+
 }
+footer p {
+    margin-top: 20px;
+    
+    width: 50%;
+    font-size: 25px;
+}
+
+
 @media (max-width: 1122px){
     label.logo {
         font-size: 30px;
@@ -128,7 +139,7 @@ footer {
     }
     .img, .credential {
         width: 100%;
-        padding-bottom: 30px;
+        
     }
     .credential{
         text-align: center;
