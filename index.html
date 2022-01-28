@@ -1,50 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mirzonabot</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> -->
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Mirzonabot Portfolio Website</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css" integrity="sha256-46qynGAkLSFpVbEBog43gvNhfrOj+BmwXdxFgVK/Kvc=" crossorigin="anonymous" />  
+        
+        <!-- Update these with your own fonts -->
+        <link href="https://fonts.googleapis.com/css?family=Lora:400,700|Roboto+Slab:400,700&display=swap" rel="stylesheet"> 
+        
+        <link rel="stylesheet" href="style.css">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
-</head>
-<body>
-    <header>
-        <input type="checkbox" id="check">
-        <label for="check" class="checkbtn">
-            <i class="fas fa-bars"></i>
-        </label>
-        <label class="logo">Mirzo<spam>RESUME</spam></label>
-        <ul>
-            <li><a href="#about" class="active">About</a></li>
-            <li><a href="#skills">Skills</a></li>
-            <li><a href="#experience">Experience</a></li>
-            <li><a href="#education">Education</a></li>
-        </ul>
-    </header>
-    <section id="about">
-        <div class="img">
-            <img src="images/main_profile.jpg" alt="Mirzonabot">
-        </div>
-        <div class="credential">
-            <p>Name: Mirzonabot Mirzonabotov</p>
-            <p>Address: Ishkashim, GBAO, Tajikistan</p>
-            <p>Email: mirzonabot.mirzonabotov_2023@ucentralasia.org</p>
-            <p>Mobile/Whatsapp: +992931269726</p>
+    </head>
+    <body>
+        <header>
+            <div class="logo">
+                <img src="img/devjane.png" alt="">
+            </div>
+            <button class="nav-toggle" aria-label="toggle navigation">
+                <span class="hamburger"></span>
+            </button>
+            <nav class="nav">
+                <ul class="nav__list">
+                    <li class="nav__item"><a href="#home" class="nav__link">Home</a></li>
+                    <li class="nav__item"><a href="#services" class="nav__link">My Services</a></li>
+                    <li class="nav__item"><a href="#about" class="nav__link">About me</a></li>
+                    <li class="nav__item"><a href="#work" class="nav__link">My Work</a></li>
+                </ul>
+            </nav>
+        </header>
+        
+        <!-- Introduction -->
+        <section class="intro" id="home">
+            <div class="center">
+                <h1 class="section__title section__title--intro">
+                    Hi, I am <strong>Mirzonabot</strong>
+                </h1>
+                <p class="section__subtitle section__subtitle--intro">Programmer</p>
+            </div>
+        
+            <img src="images/main_profile.jpg" alt="a picture of Jane Mirzonabot" class="intro__img">
+        </section>
+        
+        
+        <!-- My services -->
+        <section class="my-services" id="services">
+            <h2 class="section__title section__title--services">My Skills</h2>
+            <div class="services">
+                <div class="service">
+                    <img class="skill_image" src="images/python.png" alt="python logo">
+                    <h3>Python</h3>
+                    <p>Machine learning</p>
+                    <p>Backend development</p>
+                    <p>Web-scraping</p>
+                    <p>Interface development</p>
+                    <p>Bot development</p>
+                    
+                </div> <!-- / service -->
+                
+                <div class="service">
+                    <img class="skill_image" src="images/c_lang.png" alt="c-lang logo">
+                    <h3>C language</h3>
+                    <p>Implementing data structures</p>
+                    <p>General knowledge of the kernel</p>
+                </div> <!-- / service -->
+                
+                <div class="service">
+                    <img class="skill_image" src="images/java.png" alt="java logo">
+                    <h3>Java</h3>
+                    <p>JavaFX</p>
+                    <p>Scene builder</p>
+                    <p>Desktop aplication development</p>
+                </div> <!-- / service -->
+                <div class="service">
+                    <img class="skill_image" src="images/web_dev.png" alt="web development logo">
+                    <h3>Web development</h3>
+                    <p>Javascript</p>
+                    <p>HTML/CSS</p>
+                    <p>Bootstrap5</p>
+                    <p>Django framework</p>
+                </div> <!-- / service -->
+                
+
+            </div> <!-- / services -->
             
-        </div>
-    </section>
-    <section id="skills">
-        dccscsdc
-    </section>
-    <section id="experience"></section>
-    <section id="education"></section>
-    <footer>
-        <p class="left">RESUME</p>
-        <p class="right">Mirzonabot</p>
-    </footer>
-    <script type="text/javascript" src="javascript.js"></script>
-</body>
+            <a href="#work" class="btn">My Work</a>
+        </section>
+        
+        
+        <!-- About me -->
+        <section class="about-me" id="about">
+            <h2 class="section__title section__title--about">Who I am</h2>
+            <p class="section__subtitle section__subtitle--about">CS Student</p>
+            
+           <div class="about-me__body">
+                <p>Education: Couputer Science at the University of Central Asia</p>
+                <p>Permanent address: Zong, Ishkashim,GBAO, Tajikistan</p>
+                <p>Current address:UCA, Naryn, Kyrgyzstan</p> 
+                <p>Phone: +992931269726</p>
+                <p>WhatsApp: +992931269726</p>
+                
+
+           </div>
+           
+           <img src="images/profile_pic.png" alt="Mirzonabot picture" class="about-me__img">
+        </section>
+        
+        <!-- My Work -->
+        <section class="my-work" id="work">
+            <h2 class="section__title section__title--work">My work experience</h2>
+        
+            
+            <div class="portfolio">
+                <!-- Portfolio item 01 -->
+
+                <div class="portfolio__item">
+                    <div class="job_title">
+                        <p>Geres, Intern – Research assistant </p>
+                    </div>
+                    <div class="description">
+                        <p>Collecting data on climate change trends in Tajikistan </p>
+                        <p>Researching energy poverty and formulating recommendation on energy consumption  </p>
+                        <p>Researching and providing guidelines on efficient ways of using social media for nonprofit organizations  </p>
+                        <p>Translating factsheets on energy-saving from Tajik to English  </p>
+                        <p>Installing and configuring Kobo (a surveying tool) on laptops and tablets for field work </p>
+                        
+                    </div>
+                    <div class="portfolio__item">
+                        <div class="job_title">
+                            <p>Babilon-mobile, Intern – Mobile network</p>
+                        </div>
+                        <div class="description">
+                            <p>Learning the basics of networking </p>
+                            <p>Installing and configuring virtual environments</p>
+                            <p>Setting up Linux server and connecting to a server</p>
+                            <p>Learning the basics of mobile protocols (SS7 & Sigtram)</p>
+                            <p>Basics of mobile telecommunication</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <!-- replace with your own email address -->
+            <a href="mailto:mirzonabot.mirzonabotov_2023@ucentralasia.org" class="footer__link">Send me and email</a>
+            <ul class="social-list">
+                <li class="social-list__item">
+                    <a class="social-list__link" href="https://codepen.io">
+                        <i class="fab fa-codepen"></i>
+                    </a>
+                </li>
+                <li class="social-list__item">
+                    <a class="social-list__link" href="http://dribbble.com">
+                        <i class="fab fa-dribbble"></i>
+                    </a>
+                </li>
+                <li class="social-list__item">
+                    <a class="social-list__link" href="https://twitter.com">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                </li>
+                <li class="social-list__item">
+                    <a class="social-list__link" href="https://github.com">
+                        <i class="fab fa-github"></i>
+                    </a>
+                </li>
+            </ul>
+        </footer>
+        
+        
+        <script src="index.js"></script>
+        
+    </body>
 </html>
