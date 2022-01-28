@@ -321,16 +321,18 @@ header {
     opacity: 0.25;
 }
 
-.services {
-    
-  
-  
-}
 
 .service {
-    max-width: 500px;
-    margin: 0 auto;
+    max-width: 300px;
+    margin: auto;
     text-align: left;
+}
+.service h3 {
+    text-align: center;
+}
+
+.service img{
+    margin: auto;
 }
 
 .skill_image {
