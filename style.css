@@ -15,7 +15,7 @@
     
     --clr-light: #fff;
     --clr-dark: #303030;
-    --clr-accent: #f8333c;
+    --clr-accent: #cf7d82;
     
     --fs-h1: 3rem;
     --fs-h2: 2.25rem;
@@ -410,7 +410,10 @@ header {
 .portfolio__item {
     background: var(--clr-accent);
     padding: 5px;
-    margin: 3px;
+    margin: 15px;
+    border-radius: 15px;
+    padding-left: 20px;
+    padding-bottom: 25px;
 }
 
 .job_title {
@@ -421,6 +424,7 @@ header {
 .description p{
     font-size: 20px;
     margin: 3px;
+    color: #352828;;
 }
 
 
