@@ -248,6 +248,22 @@ header {
 
 /*  Intro section  */
 
+.my_resume {
+    text-align: center;
+    width: max-content;
+    background: #cf7d82;
+    margin: 20px auto;
+    padding: .5em;
+    border-radius: 10px;
+    
+    
+}
+
+.my_resume a{
+    text-decoration: none;
+}
+
+
 .intro {
     position: relative;
 }
@@ -264,6 +280,7 @@ header {
     .center {
         text-align: center;
     }
+    
     .intro {
         display: grid;
         width: min-content;
