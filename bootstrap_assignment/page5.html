@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple calculator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+
+</head>
+<body>
+    <div class="container">
+        <h2>Input integer numbers from 0 to 100. Then apply appropriate operations</h2>
+        <form>
+        <input class="m-3" type="text" name="first" id="first" style="width: 70px;"><br>
+        <input class="m-3" type="text" name="second" id="second" style="width: 70px;">
+        <div class="d-flex p-2 bd-highlight">
+            <button onclick="validation('addition')" class="px-5 py-3 mx-3 bg-primary text-white rounded" type="button">+<span class="p-1 bg-white text-dark m-2 rounded">1st</span></button>
+            <button onclick="validation('subtraction')" class="px-5 py-3 mx-3 bg-danger text-white rounded" type="button">-<span class="p-1 bg-white text-dark m-2 rounded">2nd</span></button>
+            <button onclick="validation('multiplication')" class="px-5 py-3 mx-3 bg-warning rounded" type="button">*<span class="p-1 bg-white text-black m-2 rounded">3rd</span></button>
+            <button onclick="validation('division')" class="px-5 py-3 mx-3 bg-success text-white rounded" type="button">/<span class="p-1 bg-white text-dark m-2 rounded">4th</span></button>
+        </div>
+        </form>
+        <div id="answer" style="border: black;"></div>
+    </div>
+    <script>
+        
+        function validation(operations) {
+            let first = parseInt(document.getElementById("first").value);
+            let second = parseInt(document.getElementById("second").value);    
+            if (first > 100 || second > 100 || first < 0 || second < 0) {
+                document.getElementById('answer').innerHTML = "Please input numbers in the range of 0 to 100";
+                return;
+            }
+            if (operations === "addition") {
+                addition(first,second);
+                return;
+            }
+            if (operations === "subtraction") {
+                subtraction(first,second);
+                return;
+            }
+            if (operations === "multiplication") {
+                multiplication(first,second);
+                return;
+            }
+            if (operations === "division") {
+                division(first,second);
+                return;
+            }
+            // return p1 * p2;   // The function returns the product of p1 and p2
+        }
+
+        function addition(first,second) {
+            document.getElementById('answer').innerHTML = first + second;
+            return;
+        }
+        function subtraction(first,second) {
+            document.getElementById('answer').innerHTML = first - second;
+            return;
+        }
+        function multiplication(first,second) {
+            document.getElementById('answer').innerHTML = first * second;
+            return 
+        }
+        function division(first,second) {
+            if (second === 0) {
+                document.getElementById('answer').innerHTML = "Division by zero!"    
+            }
+            else {
+                document.getElementById('answer').innerHTML = first / second;
+            }
+            return 
+        }
+    </script>
+</body>
+</html>
