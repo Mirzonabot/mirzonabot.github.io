@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800&family=Yuji+Boku&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    /* display: flex; */
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #f6f6f6;
+}
+
+.box {
+    width: 300px;
+    margin: auto;
+   
+}
+
+.box h2 {
+    color: #FFF;
+    background: #03a9f4;
+    padding: 10px 20px;
+    font-size: 20px;
+    font-weight: 700;
+    
+
+}
+
+.box ul {
+    position: relative;
+    background: #fff;
+}
+
+.box ul li {
+    list-style: none;
+    padding: 10px;
+    width: 100%;
+    background: #fff;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, .1);
+    transition: transform 0.5s;
+}
+
+.box ul:hover li{
+    opacity: 0.2;
+}
+
+
+
+.box ul li:hover {
+    transform: scale(1.1);
+    z-index: 100;
+    background: #25bcff;
+    box-shadow: 0 5px 25px rgba(0, 0, 0,.2);
+    color: #fff;
+    border-radius: 5px;
+    opacity: 1;
+}
+
+.box ul li span {
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    line-height: 20px;
+    background: #25bcff;
+    color: #fff;
+    display: inline-block;
+    border-radius: 50%;
+    margin-right: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    transform: translateY(-2px);
+}
+
+.box ul li:hover span {
+    background: #fff;
+    color: #25bcff;
+
+}
+
+section {
+    position: absolute;
+    width: 100%;
+    height: 100vh;
+    background: #3586ff;
+    overflow: hidden;
+}
+
+section .wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    background: url(wave.png);
+    background-size: 1000px 100px;
+}
+
+section .wave.wave1 {
+    animation: animate 30s linear infinite;
+    z-index: 1000;
+    opacity: 1;
+    animation-delay: 0s;
+    bottom: 0;
+}
+
+section .wave.wave2 {
+    animation: animate2 15s linear infinite;
+    z-index: 999;
+    opacity: 0.5;
+    animation-delay: -5s;
+    bottom: 10px;
+} 
+
+section .wave.wave3 {
+    animation: animate 30s linear infinite;
+    z-index: 998;
+    opacity: 0.2;
+    animation-delay: -2s;
+    bottom: 15px;
+} 
+
+section .wave.wave4 {
+    animation: animate2 5s linear infinite;
+    z-index: 997;
+    opacity: 0.7;
+    animation-delay: -2s;
+    bottom: 20px;
+} 
+
+@keyframes animate {
+    0% {
+        background-position-x: 0;
+    }
+    100% {
+        background-position-x: 1000px;
+    }
+}
+
+@keyframes animate2 {
+    0% {
+        background-position-x: 0;
+    }
+    100% {
+        background-position-x: -1000px;
+    }
+}
+
+.content {
+    z-index: 50;
+    height: 100vh;
+}
