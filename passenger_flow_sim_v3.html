@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Flow & O-D Matrix Editor</title>
+    <style>
+        :root {
+            --primary: #27ae60;
+            --secondary: #2c3e50;
+            --local: #3498db;
+            --express: #e74c3c;
+            --bg: #f8f9fa;
+            --panel: #ffffff;
+            --border: #e0e0e0;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--secondary);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Sidebar */
+        #sidebar {
+            width: 380px;
+            background-color: var(--panel);
+            border-right: 1px solid var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            overflow-y: auto;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+        
+        h1 { font-size: 1.3rem; margin: 0 0 5px 0; color: var(--secondary); }
+        .subtitle { font-size: 0.85rem; color: #7f8c8d; margin-bottom: 20px; }
+        
+        .section-title {
+            font-size: 0.85rem; font-weight: 700; color: var(--primary); 
+            text-transform: uppercase; margin: 20px 0 10px 0; border-bottom: 2px solid #eee; padding-bottom: 5px;
+        }
+
+        .control-group { margin-bottom: 10px; background: #fcfcfc; padding: 10px; border-radius: 5px; border: 1px solid #eee; }
+        label { display: block; font-weight: 600; font-size: 0.8rem; margin-bottom: 5px; }
+        input[type="range"], input[type="number"] { width: 100%; margin-bottom: 5px; }
+        .val-display { font-size: 0.8rem; color: var(--primary); float: right; }
+
+        /* Station Toggles */
+        .station-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .stn-toggle {
+            background: #ecf0f1; border: 1px solid #bdc3c7; border-radius: 3px;
+            text-align: center; padding: 5px; font-size: 0.75rem; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stn-toggle.active { background: var(--express); color: white; border-color: #c0392b; font-weight: bold; }
+
+        /* Buttons */
+        button {
+            border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; width: 100%;
+        }
+        button.primary { background-color: var(--primary); color: white; margin-top: 10px; }
+        button.primary:hover { background-color: #219150; }
+        
+        button.secondary { background-color: #ecf0f1; color: var(--secondary); margin-top: 5px; }
+        button.secondary:hover { background-color: #bdc3c7; }
+
+        /* Main Content */
+        #main { flex: 1; display: flex; flex-direction: column; padding: 20px; overflow: hidden; gap: 20px; }
+
+        /* Visualization */
+        #viz-container {
+            flex: 0 0 250px; /* Fixed height for map */
+            background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            position: relative; overflow: hidden;
+        }
+        canvas { display: block; width: 100%; height: 100%; }
+
+        /* Bottom Panel (Tabs) */
+        #bottom-panel {
+            flex: 1; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .tabs { display: flex; border-bottom: 1px solid #eee; background: #f9f9f9; }
+        .tab { padding: 10px 20px; cursor: pointer; font-weight: 600; color: #7f8c8d; font-size: 0.9rem; }
+        .tab.active { background: white; color: var(--primary); border-top: 3px solid var(--primary); }
+        .tab-content { flex: 1; overflow: hidden; display: none; padding: 0; }
+        .tab-content.active { display: flex; flex-direction: column; }
+
+        /* Tables */
+        .table-scroll { overflow: auto; flex: 1; width: 100%; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        th { text-align: left; border-bottom: 2px solid #eee; padding: 8px; position: sticky; top: 0; background: white; z-index: 2; }
+        td { padding: 6px 8px; border-bottom: 1px solid #f9f9f9; }
+        
+        /* Matrix specific */
+        .matrix-cell input { width: 40px; border: none; background: transparent; text-align: center; }
+        .matrix-cell input:focus { background: #e8f8f5; outline: 1px solid var(--primary); }
+        .matrix-header { background: #f4f4f4; font-weight: bold; text-align: center; }
+        
+        .math-context {
+            background: #e8f6f3; padding: 10px; border-radius: 4px;
+            font-size: 0.75rem; color: #2c3e50; margin-bottom: 15px;
+            border-left: 4px solid var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h1>Route Analyzer</h1>
+    <div class="subtitle">Interactive Demand & Flow</div>
+
+    <div class="math-context">
+        <strong>Lecture Concept: Trip Generation ($Q_{ij}$)</strong><br>
+        Use the sliders below to generate a synthetic Demand Matrix, or edit the matrix manually in the bottom panel.
+    </div>
+    
+    <div class="section-title">1. Network Config</div>
+    <div class="control-group">
+        <label>Stations (N) <span class="val-display" id="val-stations">15</span></label>
+        <input type="range" id="num-stations" min="5" max="20" value="15" oninput="rebuildNetwork()">
+    </div>
+
+    <div class="section-title">2. Service Levels (Supply)</div>
+    <div class="control-group">
+        <label>Express Stops</label>
+        <div class="station-grid" id="station-toggles"></div>
+    </div>
+    <div class="control-group">
+        <label>Local Travel Time <span class="val-display" id="val-local">5 min</span></label>
+        <input type="range" id="t-local" min="2" max="15" value="5" oninput="updateInputs(); runAssignment();">
+        
+        <label>Express Travel Time <span class="val-display" id="val-express">3 min</span></label>
+        <input type="range" id="t-express" min="1" max="10" value="3" oninput="updateInputs(); runAssignment();">
+        
+        <label>Express Wait Penalty <span class="val-display" id="val-penalty">5 min</span></label>
+        <input type="range" id="t-penalty" min="0" max="20" value="5" oninput="updateInputs(); runAssignment();">
+    </div>
+
+    <div class="section-title">3. Demand Logic ($Q_{ij}$)</div>
+    <div class="control-group" style="border-left: 4px solid #f39c12;">
+        <label>Peak: Suburb $\to$ Center <span class="val-display" id="val-peak">120 pax</span></label>
+        <input type="range" id="dem-peak" min="0" max="500" value="120" step="10" oninput="regenerateDemand()">
+        
+        <label>Reverse: Center $\to$ Suburb <span class="val-display" id="val-reverse">50 pax</span></label>
+        <input type="range" id="dem-reverse" min="0" max="500" value="50" step="10" oninput="regenerateDemand()">
+        
+        <label>Base: Random Travel <span class="val-display" id="val-base">10 pax</span></label>
+        <input type="range" id="dem-base" min="0" max="50" value="10" step="5" oninput="regenerateDemand()">
+    </div>
+
+    <button class="primary" onclick="runAssignment()">Update Flow Analysis</button>
+</div>
+
+<div id="main">
+    <div id="viz-container">
+        <canvas id="netCanvas"></canvas>
+        <div style="position:absolute; top:10px; left:10px; background:rgba(255,255,255,0.9); padding:6px; border-radius:4px; font-size:0.75rem; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+            <span style="color:var(--local)">&#9644; Local</span> &nbsp; 
+            <span style="color:var(--express)">&#9644; Express</span>
+            <div style="font-size:0.7rem; color:#666">Width = Passenger Volume</div>
+        </div>
+    </div>
+
+    <div id="bottom-panel">
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('analysis')">Link-Flow Analysis</div>
+            <div class="tab" onclick="switchTab('matrix')">O-D Matrix Editor</div>
+        </div>
+
+        <div id="tab-analysis" class="tab-content active">
+            <div style="padding:10px; background:#f0f3f4; display:flex; justify-content:space-around; border-bottom:1px solid #eee;">
+                <div>Total Pax: <strong id="total-pax">0</strong></div>
+                <div>Local Share: <strong id="share-local">0%</strong></div>
+                <div>Express Share: <strong id="share-express">0%</strong></div>
+            </div>
+            <div class="table-scroll">
+                <table id="flow-table">
+                    <thead><tr><th>Type</th><th>Segment</th><th>Flow</th><th>Cost (min)</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-matrix" class="tab-content">
+            <div style="padding:10px; background:#fff8e1; font-size:0.8rem; color:#d35400; border-bottom:1px solid #eee;">
+                <strong>Manual Override:</strong> Edit cells below to change specific passenger flows. Then click "Update Flow Analysis".
+            </div>
+            <div class="table-scroll">
+                <table id="matrix-table">
+                    </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- STATE ---
+    let NUM_STATIONS = 15;
+    let stations = [];
+    let demandMatrix = []; // Array of arrays [from][to] = count
+
+    // Canvas
+    const canvas = document.getElementById('netCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // --- INIT ---
+    window.onload = function() {
+        rebuildNetwork();
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+    };
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        // Find by text content or index (simplified)
+        if(tabName === 'analysis') {
+            document.querySelectorAll('.tab')[0].classList.add('active');
+            document.getElementById('tab-analysis').classList.add('active');
+        } else {
+            document.querySelectorAll('.tab')[1].classList.add('active');
+            document.getElementById('tab-matrix').classList.add('active');
+        }
+    }
+
+    function rebuildNetwork() {
+        NUM_STATIONS = parseInt(document.getElementById('num-stations').value);
+        document.getElementById('val-stations').innerText = NUM_STATIONS;
+        
+        // Init Stations
+        stations = Array.from({length: NUM_STATIONS}, (_, i) => ({
+            id: i, 
+            name: `S${i+1}`, 
+            isExpress: (i===0 || i===NUM_STATIONS-1 || i===Math.floor(NUM_STATIONS/2))
+        }));
+
+        createToggles();
+        regenerateDemand(); // Also runs assignment
+    }
+
+    function createToggles() {
+        const container = document.getElementById('station-toggles');
+        container.innerHTML = '';
+        // Responsive columns
+        container.style.gridTemplateColumns = NUM_STATIONS > 12 ? 'repeat(5, 1fr)' : 'repeat(4, 1fr)';
+
+        stations.forEach(s => {
+            const btn = document.createElement('div');
+            btn.className = `stn-toggle ${s.isExpress ? 'active' : ''}`;
+            btn.innerText = s.id + 1;
+            btn.title = `Toggle Station ${s.id+1}`;
+            btn.onclick = () => {
+                s.isExpress = !s.isExpress;
+                if(s.id === 0 || s.id === NUM_STATIONS-1) s.isExpress = true; // Terminals always express
+                btn.className = `stn-toggle ${s.isExpress ? 'active' : ''}`;
+                runAssignment();
+            };
+            container.appendChild(btn);
+        });
+    }
+
+    function updateInputs() {
+        document.getElementById('val-local').innerText = document.getElementById('t-local').value + " min";
+        document.getElementById('val-express').innerText = document.getElementById('t-express').value + " min";
+        document.getElementById('val-penalty').innerText = document.getElementById('t-penalty').value + " min";
+    }
+
+    // --- DEMAND LOGIC (Lecture Topic) ---
+    function regenerateDemand() {
+        const peakVal = parseInt(document.getElementById('dem-peak').value);
+        const revVal = parseInt(document.getElementById('dem-reverse').value);
+        const baseVal = parseInt(document.getElementById('dem-base').value);
+
+        document.getElementById('val-peak').innerText = peakVal + " pax";
+        document.getElementById('val-reverse').innerText = revVal + " pax";
+        document.getElementById('val-base').innerText = baseVal + " pax";
+
+        // Initialize Matrix
+        demandMatrix = Array(NUM_STATIONS).fill(0).map(() => Array(NUM_STATIONS).fill(0));
+
+        const centerStart = Math.floor(NUM_STATIONS * 0.4);
+        const centerEnd = Math.floor(NUM_STATIONS * 0.6);
+
+        for(let i=0; i<NUM_STATIONS; i++) {
+            for(let j=0; j<NUM_STATIONS; j++) {
+                if (i === j) continue;
+
+                let pax = baseVal; 
+
+                // 1. Commuter Peak: Suburb -> Center
+                const isOriginSuburb = (i < centerStart) || (i > centerEnd);
+                const isDestCenter = (j >= centerStart && j <= centerEnd);
+                if(isOriginSuburb && isDestCenter) pax += peakVal;
+
+                // 2. Reverse Peak: Center -> Suburb
+                const isOriginCenter = (i >= centerStart && i <= centerEnd);
+                const isDestSuburb = (j < centerStart) || (j > centerEnd);
+                if(isOriginCenter && isDestSuburb) pax += revVal;
+
+                demandMatrix[i][j] = pax;
+            }
+        }
+
+        renderMatrixTable();
+        runAssignment();
+    }
+
+    function renderMatrixTable() {
+        const table = document.getElementById('matrix-table');
+        table.innerHTML = '';
+        
+        // Header Row
+        let thead = '<thead><tr><th class="matrix-header">O \\ D</th>';
+        for(let i=0; i<NUM_STATIONS; i++) thead += `<th class="matrix-header">${i+1}</th>`;
+        thead += '</tr></thead>';
+        table.innerHTML = thead;
+
+        // Body
+        let tbody = '<tbody>';
+        for(let i=0; i<NUM_STATIONS; i++) {
+            tbody += `<tr><th class="matrix-header">${i+1}</th>`;
+            for(let j=0; j<NUM_STATIONS; j++) {
+                if(i === j) {
+                    tbody += `<td style="background:#eee"></td>`;
+                } else {
+                    // Inputs for manual editing
+                    tbody += `<td class="matrix-cell"><input type="number" value="${demandMatrix[i][j]}" onchange="updateMatrixVal(${i},${j},this.value)"></td>`;
+                }
+            }
+            tbody += '</tr>';
+        }
+        tbody += '</tbody>';
+        table.innerHTML += tbody;
+    }
+
+    function updateMatrixVal(i, j, val) {
+        demandMatrix[i][j] = parseInt(val) || 0;
+        // Don't re-render table (loses focus), just re-run assignment
+        runAssignment();
+    }
+
+    // --- ALGORITHM: DIJKSTRA & ASSIGNMENT ---
+    function runAssignment() {
+        const tLocal = parseInt(document.getElementById('t-local').value);
+        const tExpress = parseInt(document.getElementById('t-express').value);
+        const tPenalty = parseInt(document.getElementById('t-penalty').value);
+
+        // 1. Build Graph
+        let graph = new Array(NUM_STATIONS).fill(0).map(() => []);
+        let linkFlows = {}; 
+
+        // Local Links
+        for(let i=0; i<NUM_STATIONS-1; i++) {
+            graph[i].push({ to: i+1, cost: tLocal, type: 'local' }); // Forward
+            graph[i+1].push({ to: i, cost: tLocal, type: 'local' }); // Backward
+            linkFlows[`local-${i}-${i+1}`] = 0;
+            linkFlows[`local-${i+1}-${i}`] = 0;
+        }
+
+        // Express Links (Bidirectional)
+        let expressNodes = stations.filter(s => s.isExpress).map(s => s.id);
+        for(let k=0; k<expressNodes.length-1; k++) {
+            const u = expressNodes[k];
+            const v = expressNodes[k+1];
+            const segments = v - u;
+            const cost = (segments * tExpress) + tPenalty;
+            
+            graph[u].push({ to: v, cost: cost, type: 'express' });
+            graph[v].push({ to: u, cost: cost, type: 'express' });
+            
+            linkFlows[`express-${u}-${v}`] = 0;
+            linkFlows[`express-${v}-${u}`] = 0;
+        }
+
+        // 2. Assignment
+        let totalLocal = 0, totalExpress = 0;
+
+        for(let i=0; i<NUM_STATIONS; i++) {
+            for(let j=0; j<NUM_STATIONS; j++) {
+                const demand = demandMatrix[i][j];
+                if(demand <= 0) continue;
+
+                const path = dijkstra(graph, i, j);
+                
+                path.links.forEach(link => {
+                    const key = `${link.type}-${link.u}-${link.v}`;
+                    if(linkFlows[key] !== undefined) linkFlows[key] += demand;
+                    
+                    if(link.type === 'express') totalExpress += demand;
+                    else totalLocal += demand;
+                });
+            }
+        }
+
+        // 3. Update UI
+        const total = totalLocal + totalExpress;
+        document.getElementById('total-pax').innerText = (totalLocal + totalExpress).toLocaleString();
+        document.getElementById('share-local').innerText = total > 0 ? Math.round(totalLocal/total*100) + "%" : "0%";
+        document.getElementById('share-express').innerText = total > 0 ? Math.round(totalExpress/total*100) + "%" : "0%";
+        
+        drawNetwork(linkFlows);
+        updateFlowTable(linkFlows);
+    }
+
+    function dijkstra(graph, start, end) {
+        let dist = new Array(NUM_STATIONS).fill(Infinity);
+        let prev = new Array(NUM_STATIONS).fill(null);
+        let visited = new Array(NUM_STATIONS).fill(false);
+        dist[start] = 0;
+
+        for(let count=0; count<NUM_STATIONS; count++) {
+            let u = -1, min = Infinity;
+            for(let i=0; i<NUM_STATIONS; i++) {
+                if(!visited[i] && dist[i] < min) { min = dist[i]; u = i; }
+            }
+            if(u === -1 || u === end) break;
+            visited[u] = true;
+
+            graph[u].forEach(edge => {
+                let v = edge.to;
+                if(!visited[v]) {
+                    let alt = dist[u] + edge.cost;
+                    if(alt < dist[v]) {
+                        dist[v] = alt;
+                        prev[v] = { u: u, type: edge.type };
+                    }
+                }
+            });
+        }
+
+        let pathLinks = [];
+        let curr = end;
+        while(curr !== start && curr !== null) {
+            let p = prev[curr];
+            if(!p) break;
+            pathLinks.push({ u: p.u, v: curr, type: p.type });
+            curr = p.u;
+        }
+        return { links: pathLinks };
+    }
+
+    // --- VISUALS ---
+    function resizeCanvas() {
+        const p = document.getElementById('viz-container');
+        canvas.width = p.offsetWidth; canvas.height = p.offsetHeight;
+        runAssignment();
+    }
+
+    function drawNetwork(flows) {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0,0,W,H);
+        const pad = 40, y = H/2 + 10, w = W - pad*2;
+        const step = w / (NUM_STATIONS-1);
+
+        // Base Line
+        ctx.beginPath(); ctx.strokeStyle='#ecf0f1'; ctx.lineWidth=4;
+        ctx.moveTo(pad, y); ctx.lineTo(W-pad, y); ctx.stroke();
+
+        // Local Flows (Forward and Backward visualized as one thickness for simplicity, or offset)
+        // Simple: Sum flow i->i+1 and i+1->i
+        for(let i=0; i<NUM_STATIONS-1; i++) {
+            const f = (flows[`local-${i}-${i+1}`]||0) + (flows[`local-${i+1}-${i}`]||0);
+            if(f > 0) {
+                ctx.beginPath(); ctx.strokeStyle = '#3498db';
+                ctx.lineWidth = Math.min(15, Math.max(2, f/50));
+                ctx.moveTo(pad + i*step, y); ctx.lineTo(pad + (i+1)*step, y); ctx.stroke();
+            }
+        }
+
+        // Express Arcs
+        Object.keys(flows).forEach(key => {
+            if(key.startsWith('express') && flows[key] > 0) {
+                const parts = key.split('-');
+                const u = parseInt(parts[1]), v = parseInt(parts[2]);
+                if(u < v) { // Draw arcs only once per pair (summing flows)
+                    const revKey = `express-${v}-${u}`;
+                    const totalF = flows[key] + (flows[revKey] || 0);
+                    
+                    const x1 = pad + u*step, x2 = pad + v*step;
+                    const mid = (x1+x2)/2;
+                    const h = 30 + (v-u)*8;
+                    
+                    ctx.beginPath(); ctx.strokeStyle = '#e74c3c';
+                    ctx.lineWidth = Math.min(15, Math.max(2, totalF/50));
+                    ctx.moveTo(x1, y);
+                    ctx.quadraticCurveTo(mid, y-h, x2, y);
+                    ctx.stroke();
+                }
+            }
+        });
+
+        // Nodes
+        for(let i=0; i<NUM_STATIONS; i++) {
+            const x = pad + i*step;
+            const s = stations[i];
+            ctx.beginPath(); ctx.arc(x, y, s.isExpress?7:4, 0, 2*Math.PI);
+            ctx.fillStyle = s.isExpress ? '#e67e22' : '#bdc3c7'; ctx.fill();
+            // Label
+            if(NUM_STATIONS <= 15 || s.isExpress) {
+                ctx.fillStyle = '#555'; ctx.font = '10px Arial'; ctx.fillText(i+1, x-3, y+20);
+            }
+        }
+    }
+
+    function updateFlowTable(flows) {
+        const tbody = document.querySelector('#flow-table tbody');
+        tbody.innerHTML = '';
+        const sorted = Object.keys(flows).sort((a,b) => flows[b] - flows[a]);
+        
+        let count = 0;
+        sorted.forEach(key => {
+            if(flows[key] > 0 && count < 20) {
+                const p = key.split('-');
+                const u = parseInt(p[1]), v = parseInt(p[2]);
+                
+                let cost = 0;
+                if(p[0] === 'local') cost = parseInt(document.getElementById('t-local').value);
+                else {
+                    const segs = Math.abs(v-u);
+                    cost = (segs * parseInt(document.getElementById('t-express').value)) + parseInt(document.getElementById('t-penalty').value);
+                }
+
+                tbody.innerHTML += `<tr>
+                    <td style="color:var(--${p[0]})"><b>${p[0].toUpperCase()}</b></td>
+                    <td>S${u+1} &rarr; S${v+1}</td>
+                    <td>${flows[key]}</td>
+                    <td>${cost}</td>
+                </tr>`;
+                count++;
+            }
+        });
+    }
+</script>
+</body>
+</html>

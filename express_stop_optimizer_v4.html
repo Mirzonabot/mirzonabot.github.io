@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Express Stop Optimizer with Algorithm Steps</title>
+    <style>
+        :root {
+            --primary: #2980b9;
+            --secondary: #2c3e50;
+            --accent: #e67e22;
+            --bg: #f4f6f7;
+            --panel: #ffffff;
+            --danger: #c0392b;
+            --success: #27ae60;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--secondary);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Sidebar Controls */
+        #sidebar {
+            width: 400px;
+            background-color: var(--panel);
+            border-right: 1px solid #ddd;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+        h1 { font-size: 1.4rem; margin-bottom: 5px; color: var(--primary); }
+        h2 { font-size: 1.1rem; margin-top: 20px; border-bottom: 2px solid var(--bg); padding-bottom: 5px; }
+        .subtitle { font-size: 0.85rem; color: #7f8c8d; margin-bottom: 20px; }
+        
+        .control-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 5px; }
+        input[type="number"], input[type="range"], input[type="text"] {
+            width: 100%; padding: 6px; border: 1px solid #bdc3c7; border-radius: 4px; box-sizing: border-box; font-family: inherit;
+        }
+        
+        /* Editor Table Styles */
+        .editor-container {
+            border: 1px solid #eee; border-radius: 4px; overflow: hidden; margin-bottom: 10px;
+        }
+        .editor-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .editor-table th { background: #f8f9fa; padding: 8px; text-align: left; color: #7f8c8d; font-weight: 600; }
+        .editor-table td { padding: 4px; border-top: 1px solid #eee; }
+        .editor-table input { border: 1px solid transparent; background: transparent; width: 100%; }
+        .editor-table input:focus { border-color: var(--primary); background: white; }
+        
+        button {
+            border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.2s; flex: 1;
+        }
+        .btn-add { background: #ecf0f1; color: var(--secondary); }
+        .btn-add:hover { background: #bdc3c7; }
+        .btn-del { background: transparent; color: #999; font-size: 1.2rem; padding: 0; width: 100%; }
+        .btn-del:hover { color: var(--danger); }
+
+        button#solve-btn {
+            background-color: var(--primary); color: white; font-size: 1rem; margin-top: 10px; width: 100%;
+        }
+        button#solve-btn:hover { background-color: #1a5276; }
+
+        /* Main Visualization Area */
+        #main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+            gap: 20px;
+        }
+
+        /* Network Map */
+        #network-container {
+            background: white;
+            border-radius: 8px;
+            padding: 60px 40px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            position: relative;
+            height: 180px; /* Slightly smaller to fit log */
+            overflow-x: auto;
+            flex-shrink: 0;
+        }
+        
+        .track-line {
+            position: absolute; top: 60%; left: 40px; right: 40px; height: 4px; background: #bdc3c7; z-index: 0;
+        }
+
+        .station {
+            position: absolute; z-index: 2; width: 16px; height: 16px; background: white; border: 3px solid var(--secondary);
+            border-radius: 50%; top: 60%; transform: translate(-50%, -50%); transition: all 0.3s;
+        }
+        .station.express {
+            background: var(--accent); border-color: var(--accent); transform: translate(-50%, -50%) scale(1.4); z-index: 3;
+        }
+
+        .station-label {
+            position: absolute; top: -30px; left: 50%; transform: translateX(-50%) rotate(-45deg); transform-origin: bottom center;
+            font-size: 0.7rem; font-weight: 600; color: var(--secondary); white-space: nowrap;
+        }
+
+        .demand-bar {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 6px; background: #3498db;
+            border-radius: 2px 2px 0 0; transition: height 0.3s; opacity: 0.7;
+        }
+        
+        .coverage-line {
+            position: absolute; top: 60%; height: 4px; background: var(--accent); opacity: 0.4; z-index: 1; transform: translateY(-50%);
+        }
+
+        /* Grid Layout */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr; /* Added 3rd column for logs */
+            gap: 20px;
+            flex: 1;
+            min-height: 0; /* Enables scrolling within grid items */
+        }
+
+        .panel {
+            background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        
+        canvas#sensitivityCanvas { width: 100%; height: 100%; }
+
+        /* Results Table */
+        .res-table-wrapper { overflow-y: auto; flex: 1; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        th { position: sticky; top: 0; background: white; text-align: left; padding: 6px; border-bottom: 2px solid #eee; }
+        td { padding: 6px; border-bottom: 1px solid #eee; }
+        .highlight { color: var(--accent); font-weight: bold; }
+
+        .summary-bar { display: flex; gap: 15px; font-size: 0.9rem; }
+        .stat { font-weight: bold; color: var(--primary); }
+
+        /* Algorithm Log */
+        .log-container {
+            overflow-y: auto; flex: 1; font-family: 'Courier New', monospace; font-size: 0.75rem; line-height: 1.4;
+            background: #2c3e50; color: #ecf0f1; padding: 10px; border-radius: 4px;
+        }
+        .log-entry { margin-bottom: 8px; border-bottom: 1px solid #34495e; padding-bottom: 4px; }
+        .log-step { color: #3498db; font-weight: bold; }
+        .log-success { color: #27ae60; font-weight: bold; }
+        .log-math { color: #f1c40f; }
+        
+        /* Math Context Block */
+        .math-context {
+            background: #eef2f3; padding: 10px; border-radius: 4px; font-size: 0.75rem; color: #555; margin-bottom: 15px; border-left: 3px solid var(--primary);
+        }
+        
+        /* Loading */
+        #loading {
+            position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(255,255,255,0.8);
+            display: none; align-items: center; justify-content: center; z-index: 1000; flex-direction: column;
+        }
+        .spinner {
+            width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h1>Network Editor</h1>
+    <div class="subtitle">P-Median Facility Location Problem</div>
+
+    <div class="math-context">
+        <strong>Algorithm: Combinatorial Search</strong><br>
+        This solves the Integer Program by iterating through feasible sets of express stations (Combinations $N$ choose $P$) and calculating the objective function $Z$.
+    </div>
+
+    <div class="control-group">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+            <label style="margin:0">Station Data (Demand $h_i$)</label>
+            <button class="btn-add" onclick="addStation()" style="padding:4px 10px; font-size:0.8rem;">+ Add</button>
+        </div>
+        
+        <div class="editor-container">
+            <table class="editor-table">
+                <thead>
+                    <tr>
+                        <th style="width: 35%">Name</th>
+                        <th style="width: 25%">Km</th>
+                        <th style="width: 25%">Pax</th>
+                        <th style="width: 15%"></th>
+                    </tr>
+                </thead>
+                <tbody id="station-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label for="num-stops">Express Stops (P)</label>
+        <input type="range" id="num-stops" min="1" max="8" value="3" oninput="updatePLabel(this.value)">
+        <div style="text-align: right; font-size: 0.85rem; font-weight: bold; color: var(--secondary);">
+            Optimize for: <span id="p-val" style="color:var(--accent); font-size:1.1rem;">3</span> stops
+        </div>
+    </div>
+
+    <div style="display:flex; gap:10px;">
+        <button class="btn-add" onclick="resetToTemplate('commuter')">Template</button>
+        <button id="solve-btn" onclick="runOptimization()">Run Algorithm</button>
+    </div>
+</div>
+
+<div id="main">
+    <div id="network-container">
+        <div class="track-line"></div>
+    </div>
+
+    <div class="bottom-grid">
+        
+        <div class="panel" id="chart-container">
+            <h3 style="margin:0 0 10px 0; font-size:1rem;">Sensitivity Analysis</h3>
+            <div style="flex:1; position:relative;">
+                <canvas id="sensitivityCanvas"></canvas>
+            </div>
+            <div style="text-align:center; font-size:0.7rem; color:#7f8c8d;">Total Weighted Cost (Z) vs Stops (P)</div>
+        </div>
+
+        <div class="panel" id="results-panel">
+            <h3 style="margin:0 0 10px 0; font-size:1rem;">Optimal Solution (P=<span id="res-p">3</span>)</h3>
+            <div class="summary-bar">
+                <div>Z: <span class="stat" id="stat-z">-</span></div>
+                <div>Avg Access: <span class="stat" id="stat-avg">-</span></div>
+            </div>
+            <div class="res-table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Origin</th>
+                            <th>Pax</th>
+                            <th>To Express</th>
+                            <th>Dist</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-body">
+                        <tr><td colspan="4" style="color:#999; text-align:center; padding:20px;">Waiting for solver...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3 style="margin:0 0 10px 0; font-size:1rem;">Algorithm Steps</h3>
+            <div class="log-container" id="algo-log">
+                <div style="color:#95a5a6; padding:10px;">Click "Run Algorithm" to see the solver logic step-by-step.</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="loading"><div class="spinner"></div></div>
+
+<script>
+    // --- DATA STATE ---
+    let stations = [];
+    resetToTemplate('commuter');
+
+    // --- 1. DATA MANAGEMENT ---
+    function resetToTemplate(type) {
+        stations = [];
+        if(type === 'commuter') {
+            addStnData('Suburb A', 0, 250);
+            addStnData('Local 1', 3, 40);
+            addStnData('Local 2', 6, 50);
+            addStnData('Hub West', 10, 300);
+            addStnData('City Ctrl', 14, 600);
+            addStnData('Hub East', 18, 280);
+            addStnData('Local 3', 22, 45);
+            addStnData('Local 4', 25, 30);
+            addStnData('Suburb B', 30, 200);
+        }
+        renderEditor();
+        renderNetwork();
+        updatePControls();
+    }
+
+    function addStnData(name, pos, demand) { stations.push({ name, pos, demand }); }
+
+    function addStation() {
+        const last = stations[stations.length-1];
+        stations.push({ name: 'New', pos: last ? last.pos+3 : 0, demand: 50 });
+        renderEditor(); renderNetwork(); updatePControls();
+    }
+
+    function removeStation(i) {
+        if(stations.length <= 2) return alert("Min 2 stations");
+        stations.splice(i, 1);
+        renderEditor(); renderNetwork(); updatePControls();
+    }
+
+    function updateStation(i, f, v) {
+        if(f !== 'name') v = parseFloat(v);
+        stations[i][f] = v;
+        if(f === 'pos') { stations.sort((a,b) => a.pos - b.pos); renderEditor(); }
+        renderNetwork();
+    }
+
+    function updatePLabel(v) { document.getElementById('p-val').innerText = v; }
+    function updatePControls() {
+        const el = document.getElementById('num-stops');
+        el.max = stations.length;
+        if(parseInt(el.value) > stations.length) el.value = stations.length;
+        updatePLabel(el.value);
+    }
+
+    // --- 2. DOM RENDERING ---
+    function renderEditor() {
+        const tbody = document.getElementById('station-list');
+        tbody.innerHTML = '';
+        stations.forEach((s, i) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td><input type="text" value="${s.name}" onchange="updateStation(${i}, 'name', this.value)"></td>
+                    <td><input type="number" value="${s.pos}" onchange="updateStation(${i}, 'pos', this.value)" step="0.1"></td>
+                    <td><input type="number" value="${s.demand}" onchange="updateStation(${i}, 'demand', this.value)"></td>
+                    <td><button class="btn-del" onclick="removeStation(${i})">&times;</button></td>
+                </tr>`;
+        });
+    }
+
+    function renderNetwork(activeStops = []) {
+        const container = document.getElementById('network-container');
+        container.innerHTML = '<div class="track-line"></div>';
+        const minPos = stations[0].pos, maxPos = stations[stations.length-1].pos;
+        const maxDemand = Math.max(...stations.map(s => s.demand));
+
+        stations.forEach((s, i) => {
+            const pct = ((s.pos - minPos) / (maxPos - minPos || 1)) * 90 + 5;
+            const el = document.createElement('div');
+            el.className = `station ${activeStops.includes(i) ? 'express' : ''}`;
+            el.style.left = `${pct}%`;
+            el.innerHTML = `
+                <div class="station-label">${s.name}</div>
+                <div class="demand-bar" style="height: ${(s.demand/maxDemand)*50}px;"></div>
+            `;
+            container.appendChild(el);
+        });
+    }
+
+    // --- 3. SOLVER LOGIC & LOGGING ---
+    function runOptimization() {
+        const targetP = parseInt(document.getElementById('num-stops').value);
+        const N = stations.length;
+        const logEl = document.getElementById('algo-log');
+        
+        document.getElementById('loading').style.display = 'flex';
+        logEl.innerHTML = ''; // Clear log
+
+        setTimeout(() => {
+            // 1. Pre-calc Distances
+            log(logEl, "STEP 1: CALCULATE DISTANCE MATRIX (d_ij)", "log-step");
+            const distMat = [];
+            for(let i=0; i<N; i++) {
+                let row = [];
+                for(let j=0; j<N; j++) row.push(Math.abs(stations[i].pos - stations[j].pos));
+                distMat.push(row);
+            }
+            log(logEl, `Matrix generated for ${N}x${N} pairs.`);
+
+            // 2. Sensitivity Analysis
+            log(logEl, "STEP 2: GENERATE ALL COMBINATIONS (Combinatorial Search)", "log-step");
+            log(logEl, `Iterating P from 1 to ${Math.min(N,8)}...`);
+            
+            let results = [];
+            for(let p=1; p<=Math.min(N, 8); p++) {
+                // Only perform detailed logging for the Target P to save UI space
+                const isTarget = (p === targetP);
+                results.push(solvePMedian(p, N, distMat, isTarget ? logEl : null));
+            }
+
+            // 3. Render
+            const bestSol = results[targetP - 1];
+            renderSolutionDetails(bestSol);
+            renderNetwork(bestSol.stops);
+            drawChart(results, targetP);
+            
+            log(logEl, "STEP 4: FINAL SOLUTION", "log-step");
+            log(logEl, `Optimal set for P=${targetP}: [${bestSol.stops.map(i=>stations[i].name).join(', ')}]`, "log-success");
+            log(logEl, `Minimum Weighted Cost Z = ${Math.round(bestSol.z)}`, "log-success");
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('res-p').innerText = targetP;
+        }, 100);
+    }
+
+    function solvePMedian(P, N, distMat, logContainer) {
+        const combos = getCombinations(Array.from({length:N}, (_,i)=>i), P);
+        let globalMinZ = Infinity;
+        let bestStops = [], bestAssigns = [];
+        
+        if(logContainer) {
+            log(logContainer, `Solving P=${P}. Total combinations: ${combos.length}`, "log-math");
+        }
+
+        // Limit logging to first few iterations to prevent browser crash on large N
+        let logLimit = 5; 
+
+        combos.forEach((combo, idx) => {
+            let currentZ = 0;
+            let currentAssigns = [];
+
+            for(let i=0; i<N; i++) {
+                let minDist = Infinity;
+                let assignedTo = -1;
+                combo.forEach(stopIdx => {
+                    let d = distMat[i][stopIdx];
+                    if(d < minDist) { minDist = d; assignedTo = stopIdx; }
+                });
+                const cost = stations[i].demand * minDist;
+                currentZ += cost;
+                currentAssigns.push({ from: i, to: assignedTo, dist: minDist, cost: cost });
+            }
+
+            // Visual Log for learning
+            if(logContainer && idx < logLimit) {
+                const stopNames = combo.map(i => stations[i].name).join(',');
+                log(logContainer, `> Eval set {${stopNames}}: Z=${Math.round(currentZ)}`);
+            }
+
+            if(currentZ < globalMinZ) {
+                globalMinZ = currentZ;
+                bestStops = combo;
+                bestAssigns = currentAssigns;
+            }
+        });
+        
+        if(logContainer && combos.length > logLimit) {
+            log(logContainer, `... (${combos.length - logLimit} more combinations checked) ...`);
+        }
+
+        return { p: P, z: globalMinZ, stops: bestStops, assigns: bestAssigns };
+    }
+
+    function log(container, text, className = "") {
+        const div = document.createElement('div');
+        div.className = "log-entry " + className;
+        div.innerText = text;
+        container.appendChild(div);
+    }
+
+    function getCombinations(arr, k) {
+        let i, subI, ret = [], sub, next;
+        for(i = 0; i < arr.length; i++){
+            if(k === 1){
+                ret.push( [ arr[i] ] );
+            }else{
+                sub = getCombinations(arr.slice(i+1, arr.length), k-1);
+                for(subI = 0; subI < sub.length; subI++ ){
+                    next = sub[subI]; next.unshift(arr[i]); ret.push( next );
+                }
+            }
+        }
+        return ret;
+    }
+
+    // --- 4. RENDERING OUTPUTS ---
+    function renderSolutionDetails(sol) {
+        const tbody = document.getElementById('results-body');
+        const container = document.getElementById('network-container');
+        tbody.innerHTML = '';
+        document.querySelectorAll('.coverage-line').forEach(e => e.remove());
+
+        let totalPax = 0;
+        const minPos = stations[0].pos, maxPos = stations[stations.length-1].pos;
+        
+        sol.assigns.forEach(a => {
+            totalPax += stations[a.from].demand;
+            
+            // Table
+            const tr = document.createElement('tr');
+            if(a.from === a.to) tr.style.background = "#e8f6f3";
+            tr.innerHTML = `<td>${stations[a.from].name}</td><td>${stations[a.from].demand}</td>
+                            <td class="${a.from===a.to?'highlight':''}">${stations[a.to].name}</td><td>${a.dist.toFixed(1)}</td>`;
+            tbody.appendChild(tr);
+
+            // Map Lines
+            if(a.from !== a.to) {
+                const line = document.createElement('div');
+                line.className = 'coverage-line';
+                const p1 = ((stations[a.from].pos - minPos)/(maxPos-minPos||1))*90+5;
+                const p2 = ((stations[a.to].pos - minPos)/(maxPos-minPos||1))*90+5;
+                line.style.left = `${Math.min(p1,p2)}%`;
+                line.style.width = `${Math.abs(p1-p2)}%`;
+                container.appendChild(line);
+            }
+        });
+
+        document.getElementById('stat-z').innerText = Math.round(sol.z).toLocaleString();
+        document.getElementById('stat-avg').innerText = (sol.z / totalPax).toFixed(2) + " km";
+    }
+
+    function drawChart(results, activeP) {
+        const cvs = document.getElementById('sensitivityCanvas');
+        const ctx = cvs.getContext('2d');
+        const rect = cvs.getBoundingClientRect();
+        cvs.width = rect.width * 2; cvs.height = rect.height * 2;
+        ctx.scale(2, 2); ctx.clearRect(0,0,rect.width, rect.height);
+        
+        const p = {t:10, r:10, b:20, l:35}, w = rect.width - p.l - p.r, h = rect.height - p.t - p.b;
+        const maxZ = results[0].z;
+
+        // Grid
+        ctx.beginPath(); ctx.strokeStyle='#eee';
+        for(let i=0; i<=4; i++) { 
+            let y=p.t+(h*i/4); ctx.moveTo(p.l,y); ctx.lineTo(p.l+w,y);
+            ctx.fillStyle='#999'; ctx.font='9px Arial'; ctx.fillText(Math.round(maxZ*(1-i/4)), 0, y+3);
+        }
+        ctx.stroke();
+
+        // Line
+        ctx.beginPath(); ctx.strokeStyle='#2980b9'; ctx.lineWidth=2;
+        results.forEach((r, i) => {
+            const x = p.l + (i/(results.length-1))*w;
+            const y = p.t + h - (r.z/maxZ)*h;
+            if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        });
+        ctx.stroke();
+
+        // Dots
+        results.forEach((r, i) => {
+            const x = p.l + (i/(results.length-1))*w;
+            const y = p.t + h - (r.z/maxZ)*h;
+            ctx.beginPath(); ctx.arc(x, y, r.p===activeP?5:3, 0, 7);
+            ctx.fillStyle = r.p===activeP ? '#e67e22' : '#2980b9'; ctx.fill();
+        });
+    }
+</script>
+</body>
+</html>
