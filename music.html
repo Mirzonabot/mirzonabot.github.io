@@ -1,1 +1,228 @@
-hello Mirzo
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wakhanian Songs — Video + Lyrics</title>
+  <style>
+    :root { --max: 1100px; --gap: 18px; --border: #e5e7eb; }
+    body { margin: 0; font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial; color:#111827; background:#ffffff; }
+    header { border-bottom: 1px solid var(--border); }
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 20px; }
+    h1 { margin: 0 0 6px; font-size: 22px; }
+    .sub { margin: 0; color:#6b7280; font-size: 14px; }
+    .toolbar { display:flex; gap: 12px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+    input[type="search"] { flex: 1 1 260px; padding: 10px 12px; border:1px solid var(--border); border-radius: 10px; }
+    select { padding: 10px 12px; border:1px solid var(--border); border-radius: 10px; background:#fff; }
+    main { padding: 18px 0 40px; }
+    .grid { display:grid; grid-template-columns: 1fr; gap: var(--gap); }
+    @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .card { border:1px solid var(--border); border-radius: 14px; overflow:hidden; background:#fff; }
+    .cardHead { padding: 14px 14px 0; }
+    .title { margin: 0; font-size: 18px; }
+    .meta { margin: 6px 0 0; color:#6b7280; font-size: 13px; }
+    .player { aspect-ratio: 16/9; width: 100%; background:#000; }
+    iframe { width:100%; height:100%; border:0; display:block; }
+    .body { padding: 14px; display:grid; gap: 12px; }
+    .tabs { display:flex; gap: 8px; flex-wrap: wrap; }
+    .tabBtn {
+      appearance:none; border:1px solid var(--border); background:#fff; padding: 8px 10px;
+      border-radius: 999px; cursor:pointer; font-size: 13px;
+    }
+    .tabBtn[aria-selected="true"] { border-color:#111827; }
+    .lyricsBox {
+      border:1px solid var(--border); border-radius: 12px; padding: 12px;
+      background:#fafafa; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px; line-height: 1.55;
+      max-height: 320px; overflow:auto;
+    }
+    .row { display:flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .btn {
+      border:1px solid var(--border); background:#fff; padding: 9px 10px; border-radius: 10px;
+      cursor:pointer; font-size: 13px;
+    }
+    .badge { font-size: 12px; color:#6b7280; }
+    .hidden { display:none !important; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Wakhanian Songs — Video + Lyrics</h1>
+      <p class="sub">Embedded YouTube videos with Wakhanian text (and optional translation/transliteration).</p>
+
+      <div class="toolbar">
+        <input id="q" type="search" placeholder="Search title / artist / lyrics…" />
+        <select id="filterLang">
+          <option value="all">All</option>
+          <option value="wakhanian">Wakhanian</option>
+          <option value="translation">Has translation</option>
+          <option value="translit">Has transliteration</option>
+        </select>
+        <span id="count" class="badge"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="grid" class="grid"></div>
+  </main>
+
+  <script>
+    // 1) Add songs here.
+    // videoId is the YouTube ID after "v=" in a YouTube URL.
+    const SONGS = [
+      {
+        title: "Song Title 1",
+        artist: "Artist Name",
+        year: "2024",
+        videoId: "VIDEO_ID_HERE",
+        lyrics: {
+          wakhanian: `Wakhanian lyrics here
+Line 2
+Line 3`,
+          translit: `Optional transliteration here
+Line 2`,
+          translation: `Optional translation here
+Line 2`
+        }
+      },
+      {
+        title: "Song Title 2",
+        artist: "Artist Name",
+        year: "",
+        videoId: "VIDEO_ID_HERE",
+        lyrics: {
+          wakhanian: `Wakhanian lyrics here`,
+          translit: ``,
+          translation: ``
+        }
+      }
+    ];
+
+    const grid = document.getElementById("grid");
+    const q = document.getElementById("q");
+    const filterLang = document.getElementById("filterLang");
+    const count = document.getElementById("count");
+
+    function escapeHtml(s) {
+      return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+    }
+
+    function hasText(x) { return typeof x === "string" && x.trim().length > 0; }
+
+    function makeCard(song, idx) {
+      const { title, artist, year, videoId, lyrics } = song;
+      const tabs = [
+        { key: "wakhanian", label: "Wakhanian", show: true },
+        { key: "translit", label: "Transliteration", show: hasText(lyrics.translit) },
+        { key: "translation", label: "Translation", show: hasText(lyrics.translation) }
+      ].filter(t => t.show);
+
+      const tabButtons = tabs.map((t, i) => `
+        <button class="tabBtn" data-idx="${idx}" data-tab="${t.key}" aria-selected="${i===0}">
+          ${t.label}
+        </button>
+      `).join("");
+
+      const boxes = tabs.map((t, i) => `
+        <div class="lyricsBox ${i===0 ? "" : "hidden"}" data-idx="${idx}" data-box="${t.key}">
+          ${escapeHtml(lyrics[t.key] || "")}
+        </div>
+      `).join("");
+
+      const metaParts = [artist, year].filter(Boolean).join(" • ");
+
+      return `
+        <section class="card" data-idx="${idx}">
+          <div class="cardHead">
+            <h2 class="title">${escapeHtml(title)}</h2>
+            <p class="meta">${escapeHtml(metaParts)}</p>
+          </div>
+
+          <div class="player">
+            <iframe
+              src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}"
+              title="${escapeHtml(title)}"
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen>
+            </iframe>
+          </div>
+
+          <div class="body">
+            <div class="row">
+              <div class="tabs" role="tablist" aria-label="Lyrics tabs">
+                ${tabButtons}
+              </div>
+              <button class="btn" data-copy="${idx}">Copy visible lyrics</button>
+            </div>
+
+            ${boxes}
+          </div>
+        </section>
+      `;
+    }
+
+    function render() {
+      const query = q.value.trim().toLowerCase();
+      const filt = filterLang.value;
+
+      const filtered = SONGS
+        .map((s, i) => ({ s, i }))
+        .filter(({ s }) => {
+          const blob = [
+            s.title, s.artist, s.year,
+            s.lyrics?.wakhanian, s.lyrics?.translit, s.lyrics?.translation
+          ].join("\n").toLowerCase();
+
+          if (query && !blob.includes(query)) return false;
+
+          if (filt === "wakhanian") return hasText(s.lyrics?.wakhanian);
+          if (filt === "translation") return hasText(s.lyrics?.translation);
+          if (filt === "translit") return hasText(s.lyrics?.translit);
+          return true;
+        });
+
+      grid.innerHTML = filtered.map(({ s, i }) => makeCard(s, i)).join("");
+      count.textContent = `${filtered.length} / ${SONGS.length} songs`;
+    }
+
+    function setTab(cardIdx, tabKey) {
+      document.querySelectorAll(`.tabBtn[data-idx="${cardIdx}"]`).forEach(btn => {
+        btn.setAttribute("aria-selected", btn.dataset.tab === tabKey ? "true" : "false");
+      });
+      document.querySelectorAll(`.lyricsBox[data-idx="${cardIdx}"]`).forEach(box => {
+        box.classList.toggle("hidden", box.dataset.box !== tabKey);
+      });
+    }
+
+    document.addEventListener("click", async (e) => {
+      const tabBtn = e.target.closest(".tabBtn");
+      if (tabBtn) {
+        setTab(tabBtn.dataset.idx, tabBtn.dataset.tab);
+        return;
+      }
+
+      const copyBtn = e.target.closest("button[data-copy]");
+      if (copyBtn) {
+        const idx = copyBtn.dataset.copy;
+        const visible = document.querySelector(`.lyricsBox[data-idx="${idx}"]:not(.hidden)`);
+        const text = visible ? visible.textContent : "";
+        try {
+          await navigator.clipboard.writeText(text);
+          copyBtn.textContent = "Copied";
+          setTimeout(() => (copyBtn.textContent = "Copy visible lyrics"), 900);
+        } catch {
+          // Clipboard may be blocked; do nothing.
+        }
+      }
+    });
+
+    q.addEventListener("input", render);
+    filterLang.addEventListener("change", render);
+
+    render();
+  </script>
+</body>
+</html>
